@@ -7,7 +7,7 @@
           {
             "method": "sendMessage",
             "payload": {
-              "text": "Access paid registration view (if enabled by owner)"
+              "text": "Paid registration isn't available yet. Try again shortly."
             }
           }
         ],

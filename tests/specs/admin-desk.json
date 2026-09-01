@@ -1,0 +1,13 @@
+[
+  {
+    "name": "Admin desk is protected when owner access is unset",
+    "steps": [
+      {
+        "send": { "callback": "admin:desk" },
+        "expect": [
+          { "method": "sendMessage", "payload": { "text": "Owner access isn't set up yet." } }
+        ]
+      }
+    ]
+  }
+]

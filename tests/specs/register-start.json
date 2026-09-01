@@ -7,7 +7,7 @@
           {
             "method": "sendMessage",
             "payload": {
-              "text": "Initiate team registration questionnaire for captains"
+              "text": "Registration records aren't available yet. Try again shortly."
             }
           }
         ],
