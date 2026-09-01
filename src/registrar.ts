@@ -1,14 +1,14 @@
 /** Durable tournament records, stored as one known document in a Worker Durable Object. */
-export interface Player { gameId: string; nickname: string; role: string; fullName?: string; contact?: string; slot?: number; }
+export interface Player { gameId: string; nickname: string; role?: string; fullName?: string; contact?: string; slot?: number; }
 export interface RegistrationDraft {
   teamName: string; clanName?: string; clanTeams?: number; captainName: string;
-  captainUsername?: string; captainPhone: string; captainGameId?: string;
+  captainUsername?: string; contactTelegram?: string; captainPhone: string; captainGameId?: string;
   paymentToken?: string; players: Player[]; substitutes: Player[]; paidFlag: boolean;
 }
 export interface Team {
   id: string; teamName: string; captainTelegramId: number; captainPhone: string;
   players: Player[]; substitutes: Player[]; paidFlag: boolean;
-  clanName?: string; clanTeams?: number; captainName?: string; captainUsername?: string;
+  clanName?: string; clanTeams?: number; captainName?: string; captainUsername?: string; contactTelegram?: string;
   captainGameId?: string; paymentToken?: string;
   status: "active" | "conflict" | "rejected"; wins: number; losses: number; matchLinks: string[];
 }

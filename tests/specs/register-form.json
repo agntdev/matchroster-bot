@@ -1,28 +1,16 @@
 [
   {
-    "name": "Russian registration form can be opened for bulk entry",
+    "name": "Registration form reports every invalid required field",
     "steps": [
       {
         "send": { "callback": "register:form" },
         "expect": [
-          { "method": "sendMessage", "payload": { "text": "Отправьте заполненную форму одним сообщением или CSV-файлом." } }
+          { "method": "sendMessage", "payload": { "text": "Отправьте заполненную форму одним сообщением. Неверные строки будут отмечены ⛔." } }
         ]
       },
-      {
-        "send": { "text": "Команда: Aurora\nКапитан: Иван Иванов\nИгроки:\n1 | Иван Иванов | Ivan | id-1 | @ivan" },
-        "expect": [
-          { "method": "sendMessage", "payload": { "text": "Данные регистрации пока недоступны. Попробуйте позже." } }
-        ]
-      }
-    ]
-  },
-  {
-    "name": "Russian CSV template is available",
-    "steps": [
-      {
-        "send": { "callback": "register:template" },
-        "expect": [{ "method": "sendDocument" }]
-      }
+      { "send": { "text": "Контакт @: captain\nКонтакт +: 7999123\nНазвание команды: A\nИгроки:\nmissing" }, "expect": [
+        { "method": "sendMessage", "payload": { "text": "Проверьте отмеченные поля:\n⛔ Контакт @: начните с @ и укажите корректный username\n⛔ Контакт +: начните с + и используйте только цифры\n⛔ Название команды: укажите от 2 до 40 символов\n⛔ Игроки: добавьте хотя бы одного игрока" } }
+      ] }
     ]
   }
 ]

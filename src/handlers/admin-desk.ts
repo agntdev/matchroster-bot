@@ -10,6 +10,8 @@ const back = (ctx: Ctx) => inlineKeyboard([[inlineButton(t(ctx, "back"), "menu:m
 const menu = (ctx: Ctx) => inlineKeyboard([[inlineButton(t(ctx, "admin.conflicts"), "admin:conflict")], [inlineButton(t(ctx, "admin.match"), "admin:add_match")], [inlineButton(t(ctx, "admin.paid"), "admin:paid")], [inlineButton(t(ctx, "back"), "menu:main")]]);
 const owner = (ctx: Ctx) => requireOwner(ctx as never);
 const unavailable = (ctx: Ctx) => ctx.reply(t(ctx, "unavailable.records"));
+const teamDetails = (team: { teamName: string; contactTelegram?: string; captainUsername?: string; captainPhone: string; players: { gameId: string; nickname: string }[] }) =>
+  `${team.teamName}\nКонтакт @: ${team.contactTelegram ?? team.captainUsername ?? "не указан"}\nКонтакт +: ${team.captainPhone || "не указан"}\nИгроки: ${team.players.map((player) => `${player.gameId} | ${player.nickname}`).join(", ")}`;
 
 composer.callbackQuery("admin:desk", async ctx => { await ctx.answerCallbackQuery(); if (await owner(ctx)) await ctx.editMessageText(t(ctx, "admin.desk"), { reply_markup: menu(ctx) }); });
 composer.callbackQuery("admin:conflict", async ctx => {
@@ -18,7 +20,7 @@ composer.callbackQuery("admin:conflict", async ctx => {
   const challenger = data.teams.find(team => team.id === conflict.challengerId), incumbent = data.teams.find(team => team.id === conflict.incumbentId);
   if (!challenger || !incumbent) return ctx.reply(t(ctx, "admin.conflict.incomplete"));
   ctx.session.step = "admin_conflict_choice"; ctx.session.conflictId = conflict.id;
-  await ctx.reply(t(ctx, "admin.conflict.choose", { one: incumbent.teamName, two: challenger.teamName, ids: conflict.gameIds.join(", ") }), { reply_markup: typed(ctx) });
+  await ctx.reply(`${t(ctx, "admin.conflict.choose", { one: incumbent.teamName, two: challenger.teamName, ids: conflict.gameIds.join(", ") })}\n\n1. ${teamDetails(incumbent)}\n\n2. ${teamDetails(challenger)}`, { reply_markup: typed(ctx) });
 });
 composer.callbackQuery("admin:add_match", async ctx => {
   await ctx.answerCallbackQuery(); if (!(await owner(ctx))) return; const data = await readTournament(ctx); if (!data) return unavailable(ctx);
