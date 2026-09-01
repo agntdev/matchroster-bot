@@ -144,6 +144,17 @@ export class ChatDO {
       }
     }
 
+    // Shared application records are addressed through a named ChatDO. Callers
+    // keep their own explicit index records; this endpoint never scans storage.
+    if (url.pathname.startsWith("/data/")) {
+      const dataKey = "data:" + decodeURIComponent(url.pathname.slice("/data/".length));
+      if (request.method === "GET") {
+        const value = await this.state.storage.get<unknown>(dataKey);
+        return value === undefined ? new Response(null, { status: 204 }) : Response.json(value);
+      }
+      if (request.method === "PUT") { await this.state.storage.put(dataKey, await request.json()); return new Response(null, { status: 204 }); }
+    }
+
     // Schedule a reminder + (re)arm the alarm to the earliest due one.
     if (url.pathname === "/remind" && request.method === "POST") {
       const rem = (await request.json()) as Reminder;

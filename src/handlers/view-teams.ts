@@ -1,17 +1,15 @@
 import { Composer } from "grammy";
-
-// SCAFFOLD — generated from the bot blueprint BEFORE the agent runs.
-// Keep a LIVE registration (.command / .callbackQuery / …) so this feature is
-// never an empty stub. Replace the reply body with real logic + copy; if you
-// change the user-facing text, update tests/specs to match EXACTLY.
-// Do NOT rewrite src/bot.ts — buildBot() already auto-loads this module.
-// Menu: wire this into /start via registerMainMenuItem({ label: "View Teams & Table", data: "view:teams" }) if the toolkit exposes it.
-
-const composer = new Composer();
-
-composer.callbackQuery("view:teams", async (ctx) => {
-  await ctx.answerCallbackQuery();
-  await ctx.reply("Show public list of registered teams and match results");
-});
-
+import type { Ctx } from "../bot.js";
+import { inlineButton, inlineKeyboard, registerMainMenuItem } from "../toolkit/index.js";
+import { teams } from "../registrar-data.js";
+registerMainMenuItem({ label: "View teams & table", data: "view:teams", order: 20 });
+const composer = new Composer<Ctx>();
+async function render(ctx: Ctx, edit = false) {
+  const active = (await teams(ctx)).filter((t) => t.status === "active").sort((a, b) => b.wins - a.wins || a.losses - b.losses || a.teamName.localeCompare(b.teamName));
+  const text = active.length ? "Registered teams and live table:\n" + active.map((t, i) => `${i + 1}. ${t.teamName} — ${t.wins}W / ${t.losses}L${t.matchLinks.length ? ` · ${t.matchLinks[t.matchLinks.length - 1]}` : ""}`).join("\n") : "No teams are registered yet — tap Register team to add one.";
+  const opts = { reply_markup: inlineKeyboard([[inlineButton("Back to menu", "menu:main")]]) };
+  if (edit) await ctx.editMessageText(text, opts); else await ctx.reply(text, opts);
+}
+composer.callbackQuery("view:teams", async (ctx) => { await ctx.answerCallbackQuery(); await render(ctx); });
+export { render as renderTeams };
 export default composer;

@@ -6,15 +6,18 @@
         "expect": [
           {
             "method": "sendMessage",
-            "payload": {
-              "text": "Initiate team registration questionnaire for captains"
-            }
+            "payload": { "text": "Send your team name." }
           }
         ],
         "send": {
           "callback": "register:start"
         }
-      }
+      },
+      { "send": { "text": "Falcons" }, "expect": [{ "method": "sendMessage", "payload": { "text": "Send the captain's contact number." } }] },
+      { "send": { "text": "+1 555 0100" }, "expect": [{ "method": "sendMessage", "payload": { "text": "Send the first player as: game ID, nickname, role." } }] },
+      { "send": { "text": "falcon-7, Ace, captain" }, "expect": [{ "method": "sendMessage", "payload": { "text": "Player saved. Add another player or review your team." } }] },
+      { "send": { "callback": "register:finish" }, "expect": [{ "method": "sendMessage", "payload": { "text": "Review your team: Falcons\nPlayers: 1\nSubstitutes: 0" } }] },
+      { "send": { "callback": "register:confirm" }, "expect": [{ "method": "sendMessage", "payload": { "text": "Your team is registered and active. Organizer notifications aren't set up yet." } }] }
     ]
   }
 ]

@@ -6,10 +6,19 @@ import type { StorageAdapter } from "grammy";
 // bot grows. Durable domain data must NOT live here — use the toolkit's
 // persistent storage (see AGENTS.md).
 export interface Session {
-  // example: step?: "awaiting_amount";
+  registrar?: {
+    step?: "team" | "phone" | "player" | "confirm" | "paid-confirm" | "price" | "link" | "match" | "conflict";
+    teamName?: string;
+    phone?: string;
+    players?: Array<{ gameId: string; nickname: string; role: string }>;
+    substitutes?: Array<{ gameId: string; nickname: string; role: string }>;
+    paid?: boolean;
+    addingSubstitute?: boolean;
+    conflictId?: string;
+  };
 }
 
-export type Ctx = BotContext<Session>;
+export type Ctx = BotContext<Session> & { env?: Record<string, unknown> };
 
 /**
  * BuildBotOptions lets a runtime-specific ENTRY POINT (never a feature handler)
