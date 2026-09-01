@@ -7,7 +7,7 @@ import type { StorageAdapter } from "grammy";
 // persistent storage (see AGENTS.md).
 export interface Session {
   locale?: "en" | "ru";
-  step?: "team_name" | "captain_phone" | "player_count" | "player" | "substitute_choice" | "substitute" | "registration_confirm" | "paid_confirm" | "admin_conflict_choice" | "admin_match_winner" | "admin_match_loser" | "admin_match_link" | "admin_paid_price" | "admin_paid_link";
+  step?: "registration_form" | "registration_preview" | "paid_confirm" | "admin_conflict_choice" | "admin_match_winner" | "admin_match_loser" | "admin_match_link" | "admin_paid_price" | "admin_paid_link";
   teamName?: string;
   captainPhone?: string;
   playerCount?: number;
@@ -18,6 +18,7 @@ export interface Session {
   matchWinnerId?: string;
   matchLoserId?: string;
   paidPrice?: string;
+  registrationDraft?: import("./registrar.js").RegistrationDraft;
 }
 
 export type Ctx = BotContext<Session>;

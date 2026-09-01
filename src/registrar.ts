@@ -1,12 +1,19 @@
 /** Durable tournament records, stored as one known document in a Worker Durable Object. */
-export interface Player { gameId: string; nickname: string; role: string; }
+export interface Player { gameId: string; nickname: string; role: string; fullName?: string; contact?: string; slot?: number; }
+export interface RegistrationDraft {
+  teamName: string; clanName?: string; clanTeams?: number; captainName: string;
+  captainUsername?: string; captainPhone: string; captainGameId?: string;
+  paymentToken?: string; players: Player[]; substitutes: Player[]; paidFlag: boolean;
+}
 export interface Team {
   id: string; teamName: string; captainTelegramId: number; captainPhone: string;
   players: Player[]; substitutes: Player[]; paidFlag: boolean;
+  clanName?: string; clanTeams?: number; captainName?: string; captainUsername?: string;
+  captainGameId?: string; paymentToken?: string;
   status: "active" | "conflict" | "rejected"; wins: number; losses: number; matchLinks: string[];
 }
 export interface Conflict { id: string; challengerId: string; incumbentId: string; gameIds: string[]; resolved: boolean; }
-export interface PaidSettings { enabled: boolean; price: string; paymentLink: string; }
+export interface PaidSettings { enabled: boolean; price: string; paymentLink: string; clanMultiTeam?: boolean; maxPlayers?: number; maxSubstitutes?: number; }
 export interface TournamentData { nextId: number; teams: Team[]; conflicts: Conflict[]; paid: PaidSettings; }
 type Stub = { fetch(input: string, init?: { method?: string; body?: string }): Promise<Response> };
 type DataEnv = { CHAT_DO?: { idFromName(name: string): unknown; get(id: unknown): Stub } };
@@ -32,6 +39,9 @@ export async function writeTournament(ctx: object, data: TournamentData): Promis
   return response.ok;
 }
 export function nextId(data: TournamentData, prefix: string): string { const id = `${prefix}${data.nextId}`; data.nextId += 1; return id; }
-export function allGameIds(team: Pick<Team, "players" | "substitutes">): string[] {
-  return [...team.players, ...team.substitutes].map((player) => player.gameId.toLocaleLowerCase());
+export function allGameIds(team: Pick<Team, "players" | "substitutes"> & { captainGameId?: string }): string[] {
+  return [...team.players, ...team.substitutes]
+    .map((player) => player.gameId)
+    .concat(team.captainGameId ? [team.captainGameId] : [])
+    .map((id) => id.toLocaleLowerCase());
 }

@@ -7,7 +7,7 @@
           {
             "method": "sendMessage",
             "payload": {
-              "text": "Registration records aren't available yet. Try again shortly."
+              "text": "Данные регистрации пока недоступны. Попробуйте позже."
             }
           }
         ],
