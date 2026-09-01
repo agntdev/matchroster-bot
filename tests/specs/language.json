@@ -1,0 +1,23 @@
+[
+  {
+    "name": "language switch changes the main menu to Russian",
+    "steps": [
+      {
+        "send": { "text": "/language" },
+        "expect": [{ "method": "sendMessage", "payload": { "text": "Choose your language." } }]
+      },
+      {
+        "send": { "callback": "language:ru" },
+        "expect": [{ "method": "editMessageText", "payload": { "text": "Выбран русский язык." } }]
+      },
+      {
+        "send": { "callback": "menu:main" },
+        "expect": [{ "method": "editMessageText", "payload": { "text": "Добро пожаловать в реестр команд. Выберите действие." } }]
+      },
+      {
+        "send": { "callback": "register:start" },
+        "expect": [{ "method": "sendMessage", "payload": { "text": "Данные регистрации пока недоступны. Попробуйте позже." } }]
+      }
+    ]
+  }
+]
