@@ -14,7 +14,14 @@ export interface Team {
 }
 export interface Conflict { id: string; challengerId: string; incumbentId: string; gameIds: string[]; resolved: boolean; }
 export interface PaidSettings { enabled: boolean; price: string; paymentLink: string; clanMultiTeam?: boolean; maxPlayers?: number; maxSubstitutes?: number; }
-export interface TournamentData { nextId: number; teams: Team[]; conflicts: Conflict[]; paid: PaidSettings; }
+export interface TournamentData {
+  nextId: number;
+  teams: Team[];
+  conflicts: Conflict[];
+  paid: PaidSettings;
+  /** Owner-confirmed copy shown to captains. Kept with the tournament settings. */
+  registrationTemplate?: string;
+}
 type Stub = { fetch(input: string, init?: { method?: string; body?: string }): Promise<Response> };
 type DataEnv = { CHAT_DO?: { idFromName(name: string): unknown; get(id: unknown): Stub } };
 
