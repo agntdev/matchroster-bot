@@ -9,8 +9,7 @@ const composer = new Composer<Ctx>();
 const MAX_PLAYERS = 12;
 const back = () => inlineKeyboard([[inlineButton("В меню", "menu:main")]]);
 const actions = () => inlineKeyboard([
-  [inlineButton("Заполнить форму", "register:form")],
-  [inlineButton("Проверить поля", "register:form")],
+  [inlineButton("Отправить заявку", "register:form")],
   [inlineButton("Отмена", "register:cancel")],
 ]);
 
@@ -22,26 +21,23 @@ function clear(ctx: Ctx): void {
 
 function normalize(value: string): string { return value.trim().toLocaleLowerCase(); }
 function validUsername(value: string): boolean { return /^@[a-zA-Z][a-zA-Z0-9_]{4,31}$/.test(value); }
-function validPhone(value: string): boolean { return /^\+\d+$/.test(value); }
+function validPhone(value: string): boolean { return /^\+\d{7,15}$/.test(value); }
 
-/** A compact plain-text table is the closest native Telegram equivalent to an editable form. */
-function form(maxPlayers: number, paid: boolean): string {
+/** The owner-approved template is also used in the admin preview. */
+export function registrationTemplate(maxPlayers: number, paid: boolean): string {
   return [
     "Регистрационная форма",
-    "Заполните все строки одним сообщением. Каждую строку можно исправить и отправить снова.",
     "",
-    "Контакт @: @username",
-    "Контакт +: +79991234567",
-    "Название команды: Название",
-    "Игроки:",
-    "ID | Никнейм",
-    "game-id-1 | PlayerOne",
-    "game-id-2 | PlayerTwo",
+    "1) Контакт @: @yourTelegram (example: @Captain123)",
+    "2) Контакт +: +7xxxxxxxxxx (example: +79991234567)",
+    "3) Название команды: TeamName",
+    "4) Игроки (по одному в строке): player_id nickname (без роли). Пример: 123456789 PlayerNick",
     "",
-    `Добавьте от 1 до ${maxPlayers} строк игроков. Поля «Контакт @», «Контакт +», «Название команды» и обе колонки игрока обязательны.`,
-    paid ? "Подтверждение оплаты: номер операции или ссылка" : "",
-    "Если поле неверно, бот отметит его ⛔ и подскажет, что исправить.",
-  ].filter(Boolean).join("\n");
+    "Заполните поля выше и добавьте игроков следующими строками без роли.",
+    `Добавьте от 1 до ${maxPlayers} игроков.`,
+    ...(paid ? ["Подтверждение оплаты: номер операции или ссылка"] : []),
+    "Отправьте заполненную форму одним сообщением.",
+  ].join("\n");
 }
 
 function issue(field: string, message: string): string { return `⛔ ${field}: ${message}`; }
@@ -53,13 +49,14 @@ function parseForm(text: string, maxPlayers: number, paid: boolean): Registratio
   for (const raw of text.replace(/\r/g, "").split("\n")) {
     const line = raw.trim();
     if (!line) continue;
-    if (/^игроки\s*:?$/i.test(line)) { readingPlayers = true; continue; }
-    if (/^id\s*\|\s*никнейм$/i.test(line)) continue;
+    if (/^(?:4\)\s*)?игроки(?:\s|:|\(|$)/iu.test(line)) { readingPlayers = true; continue; }
+    if (/^player_id\s+nickname$/i.test(line)) continue;
     const colon = line.indexOf(":");
-    if (colon > 0 && !line.includes("|")) {
-      fields[normalize(line.slice(0, colon))] = line.slice(colon + 1).trim();
+    if (colon > 0 && !line.includes("|") && !readingPlayers) {
+      const key = normalize(line.slice(0, colon)).replace(/^\d+\)\s*/, "");
+      fields[key] = line.slice(colon + 1).trim();
       readingPlayers = false;
-    } else if (readingPlayers && line.includes("|")) playerRows.push(line);
+    } else if (readingPlayers) playerRows.push(line);
   }
 
   const errors: string[] = [];
@@ -74,12 +71,12 @@ function parseForm(text: string, maxPlayers: number, paid: boolean): Registratio
 
   const players: Player[] = [];
   for (const [index, row] of playerRows.entries()) {
-    const parts = row.split("|").map((part) => part.trim());
-    if (parts.length !== 2 || !parts[0] || !parts[1]) {
-      errors.push(issue(`Игрок ${index + 1}`, "используйте формат ID | Никнейм"));
+    const match = /^(\S+)\s+(.+?)$/.exec(row);
+    if (!match || !match[1] || !match[2]) {
+      errors.push(issue(`Игрок ${index + 1}`, "используйте формат ID никнейм без роли"));
       continue;
     }
-    players.push({ gameId: parts[0], nickname: parts[1], slot: index + 1 });
+    players.push({ gameId: match[1], nickname: match[2].trim(), slot: index + 1 });
   }
   const ids = players.map((player) => normalize(player.gameId));
   if (new Set(ids).size !== ids.length) errors.push(issue("Игроки", "игровые ID не должны повторяться"));
@@ -116,7 +113,7 @@ async function showForm(ctx: Ctx, paidFlag: boolean): Promise<void> {
   const maxPlayers = Math.min(data?.paid.maxPlayers ?? 6, MAX_PLAYERS);
   clear(ctx);
   ctx.session.paidFlag = paidFlag;
-  await ctx.reply(form(maxPlayers, paidFlag || data?.paid.enabled === true), { reply_markup: actions() });
+  await ctx.reply(registrationTemplate(maxPlayers, paidFlag || data?.paid.enabled === true), { reply_markup: actions() });
 }
 
 export async function beginRegistration(ctx: Ctx, paidFlag = false): Promise<void> { await showForm(ctx, paidFlag); }

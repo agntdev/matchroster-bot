@@ -2,18 +2,38 @@ import { Composer } from "grammy";
 import type { Ctx } from "../bot.js";
 import { inlineButton, inlineKeyboard, registerMainMenuItem, requireOwner } from "../toolkit/index.js";
 import { nextId, readTournament, writeTournament } from "../registrar.js";
+import { registrationTemplate } from "./register-start.js";
 import { t, typed } from "../i18n.js";
 
 registerMainMenuItem({ label: "Admin desk", data: "admin:desk", order: 90 });
 const composer = new Composer<Ctx>();
 const back = (ctx: Ctx) => inlineKeyboard([[inlineButton(t(ctx, "back"), "menu:main")]]);
-const menu = (ctx: Ctx) => inlineKeyboard([[inlineButton(t(ctx, "admin.conflicts"), "admin:conflict")], [inlineButton(t(ctx, "admin.match"), "admin:add_match")], [inlineButton(t(ctx, "admin.paid"), "admin:paid")], [inlineButton(t(ctx, "back"), "menu:main")]]);
+const menu = (ctx: Ctx) => inlineKeyboard([[inlineButton("Шаблон регистрации", "admin:template")], [inlineButton(t(ctx, "admin.conflicts"), "admin:conflict")], [inlineButton(t(ctx, "admin.match"), "admin:add_match")], [inlineButton(t(ctx, "admin.paid"), "admin:paid")], [inlineButton(t(ctx, "back"), "menu:main")]]);
 const owner = (ctx: Ctx) => requireOwner(ctx as never);
 const unavailable = (ctx: Ctx) => ctx.reply(t(ctx, "unavailable.records"));
 const teamDetails = (team: { teamName: string; contactTelegram?: string; captainUsername?: string; captainPhone: string; players: { gameId: string; nickname: string }[] }) =>
   `${team.teamName}\nКонтакт @: ${team.contactTelegram ?? team.captainUsername ?? "не указан"}\nКонтакт +: ${team.captainPhone || "не указан"}\nИгроки: ${team.players.map((player) => `${player.gameId} | ${player.nickname}`).join(", ")}`;
 
 composer.callbackQuery("admin:desk", async ctx => { await ctx.answerCallbackQuery(); if (await owner(ctx)) await ctx.editMessageText(t(ctx, "admin.desk"), { reply_markup: menu(ctx) }); });
+composer.callbackQuery("admin:template", async ctx => {
+  await ctx.answerCallbackQuery();
+  if (!(await owner(ctx))) return;
+  const data = await readTournament(ctx);
+  if (!data) return unavailable(ctx);
+  const template = registrationTemplate(Math.min(data.paid.maxPlayers ?? 6, 12), data.paid.enabled);
+  await ctx.editMessageText(`Шаблон регистрации сформирован:\n\n${template}\n\nПодтвердить сохранение?`, {
+    reply_markup: inlineKeyboard([[inlineButton("Подтвердить сохранение", "admin:template:save")], [inlineButton(t(ctx, "back"), "admin:desk")]]),
+  });
+});
+composer.callbackQuery("admin:template:save", async ctx => {
+  await ctx.answerCallbackQuery();
+  if (!(await owner(ctx))) return;
+  const data = await readTournament(ctx);
+  if (!data) return unavailable(ctx);
+  data.registrationTemplate = registrationTemplate(Math.min(data.paid.maxPlayers ?? 6, 12), data.paid.enabled);
+  if (!await writeTournament(ctx, data)) return ctx.reply("Не удалось сохранить шаблон. Попробуйте позже.");
+  await ctx.editMessageText("Шаблон регистрации сохранён. Капитаны увидят эти поля при открытии регистрации.", { reply_markup: menu(ctx) });
+});
 composer.callbackQuery("admin:conflict", async ctx => {
   await ctx.answerCallbackQuery(); if (!(await owner(ctx))) return; const data = await readTournament(ctx); if (!data) return unavailable(ctx);
   const conflict = data.conflicts.find(item => !item.resolved); if (!conflict) return ctx.editMessageText(t(ctx, "admin.no.conflicts"), { reply_markup: menu(ctx) });
