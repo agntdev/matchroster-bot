@@ -36,6 +36,7 @@ export interface DOStub {
   fetch(input: string, init?: { method?: string; body?: string }): Promise<Response>;
 }
 export interface WorkerEnv {
+  [key: string]: unknown;
   BOT_TOKEN: string;
   WEBHOOK_SECRET?: string;
   CHAT_DO: DONamespace;
@@ -140,6 +141,22 @@ export class ChatDO {
       }
       if (request.method === "DELETE") {
         await this.state.storage.delete("session");
+        return new Response(null, { status: 204 });
+      }
+    }
+
+    // Feature-owned domain documents are addressed by their exact key. This
+    // intentionally provides no enumeration API, keeping reads bounded.
+    if (url.pathname === "/data") {
+      const key = url.searchParams.get("key");
+      if (!key) return new Response("missing key", { status: 400 });
+      if (request.method === "GET") {
+        const value = await this.state.storage.get<unknown>(`data:${key}`);
+        if (value === undefined) return new Response(null, { status: 204 });
+        return Response.json(value);
+      }
+      if (request.method === "PUT") {
+        await this.state.storage.put(`data:${key}`, await request.json());
         return new Response(null, { status: 204 });
       }
     }

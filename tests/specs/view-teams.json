@@ -7,7 +7,7 @@
           {
             "method": "sendMessage",
             "payload": {
-              "text": "Show public list of registered teams and match results"
+              "text": "Tournament records aren't available yet. Try again shortly."
             }
           }
         ],
