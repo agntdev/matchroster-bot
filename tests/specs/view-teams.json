@@ -6,9 +6,7 @@
         "expect": [
           {
             "method": "sendMessage",
-            "payload": {
-              "text": "Show public list of registered teams and match results"
-            }
+            "payload": { "text": "No teams are registered yet — tap Register team to add one." }
           }
         ],
         "send": {

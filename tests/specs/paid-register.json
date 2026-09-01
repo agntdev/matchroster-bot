@@ -6,9 +6,7 @@
         "expect": [
           {
             "method": "sendMessage",
-            "payload": {
-              "text": "Access paid registration view (if enabled by owner)"
-            }
+            "payload": { "text": "Paid registration isn't enabled yet." }
           }
         ],
         "send": {
