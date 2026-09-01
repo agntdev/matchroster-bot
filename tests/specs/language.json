@@ -3,8 +3,8 @@
     "name": "language switch changes the main menu to Russian",
     "steps": [
       {
-        "send": { "text": "/language" },
-        "expect": [{ "method": "sendMessage", "payload": { "text": "Choose your language." } }]
+        "send": { "callback": "language:open" },
+        "expect": [{ "method": "editMessageText", "payload": { "text": "Choose your language." } }]
       },
       {
         "send": { "callback": "language:ru" },

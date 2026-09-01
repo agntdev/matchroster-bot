@@ -1,0 +1,28 @@
+[
+  {
+    "name": "Russian registration form can be opened for bulk entry",
+    "steps": [
+      {
+        "send": { "callback": "register:form" },
+        "expect": [
+          { "method": "sendMessage", "payload": { "text": "Отправьте заполненную форму одним сообщением или CSV-файлом." } }
+        ]
+      },
+      {
+        "send": { "text": "Команда: Aurora\nКапитан: Иван Иванов\nИгроки:\n1 | Иван Иванов | Ivan | id-1 | @ivan" },
+        "expect": [
+          { "method": "sendMessage", "payload": { "text": "Данные регистрации пока недоступны. Попробуйте позже." } }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Russian CSV template is available",
+    "steps": [
+      {
+        "send": { "callback": "register:template" },
+        "expect": [{ "method": "sendDocument" }]
+      }
+    ]
+  }
+]
